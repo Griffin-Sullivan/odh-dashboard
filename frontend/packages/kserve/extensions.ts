@@ -45,6 +45,29 @@ const extensions: (
       columns: () => import('./src/deploymentsTable').then((m) => m.columns),
     },
   },
+  // {
+  //   type: 'model-serving.platform',
+  //   properties: {
+  //     id: 'modelmesh-dummy',
+  //     manage: {
+  //       namespaceApplicationCase: NamespaceApplicationCase.MODEL_MESH_PROMOTION,
+  //       enabledLabel: 'modelmesh-enabled',
+  //       enabledLabelValue: 'true',
+  //     },
+  //     enableCardText: {
+  //       title: 'Multi-model serving platform',
+  //       description:
+  //         'Multiple models can be deployed on one shared model server. Useful for deploying a number of small or medium-sized models that can share the server resources.',
+  //       selectText: 'Select multi-model',
+  //       enabledText: 'Multi-model serving enabled',
+  //     },
+  //     deployedModelsView: {
+  //       startHintTitle: 'Start by deploying a model',
+  //       startHintDescription: 'Each model is deployed on its own model server',
+  //       deployButtonText: 'Deploy model',
+  //     },
+  //   },
+  // },
 ];
 
 export default extensions;
