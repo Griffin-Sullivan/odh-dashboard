@@ -22,7 +22,11 @@ const extensions: (
         enabledLabelValue: 'false',
       },
       deployments: {
+<<<<<<< HEAD
         watch: () => import('./src/deployments').then((m) => m.useWatchDeployments),
+=======
+        list: () => import('./src/deployments').then((m) => m.listDeployments),
+>>>>>>> 1ebb9c517 (Update 'Deployment' type usage)
       },
       enableCardText: {
         title: 'Single-model serving platform',
