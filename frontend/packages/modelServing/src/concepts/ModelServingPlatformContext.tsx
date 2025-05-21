@@ -4,8 +4,7 @@ import { ProjectDetailsContext } from '@odh-dashboard/internal/pages/projects/Pr
 import type { ProjectKind } from '@odh-dashboard/internal/k8sTypes';
 import { useResolvedExtensions } from '@odh-dashboard/plugin-core';
 import { useActiveServingPlatform, ModelServingPlatform } from './modelServingPlatforms';
-import { useDeployedModels } from './deployments';
-import { isModelServingPlatformExtension, Deployment } from '../../extension-points';
+import { isModelServingPlatformExtension } from '../../extension-points';
 
 type ModelServingPlatformContextType = {
   project?: ProjectKind;

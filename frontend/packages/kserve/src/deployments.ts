@@ -4,10 +4,13 @@ import {
   InferenceServiceKind,
   K8sAPIOptions,
   ProjectKind,
+  isInferenceServiceKind,
   ServingRuntimeKind,
 } from '@odh-dashboard/internal/k8sTypes';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import useK8sWatchResourceList from '@odh-dashboard/internal/utilities/useK8sWatchResourceList';
+import { deleteInferenceService, deleteServingRuntime } from '@odh-dashboard/internal/api/index';
+import { isServingRuntimeKind } from '@odh-dashboard/internal/pages/modelServing/customServingRuntimes/utils';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { groupVersionKind } from '@odh-dashboard/internal/api/k8sUtils';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -72,4 +75,29 @@ export const useWatchDeployments = (
     inferenceServiceLoaded && servingRuntimeLoaded,
     inferenceServiceError || servingRuntimeError,
   ];
+};
+
+export const deleteDeployment = async (deployment: Deployment): Promise<void> => {
+  const inferenceService = isInferenceServiceKind(deployment.model) ? deployment.model : undefined;
+  const servingRuntime =
+    deployment.server && isServingRuntimeKind(deployment.server) ? deployment.server : undefined;
+
+  if (!inferenceService) {
+    throw new Error('No inference service found');
+  }
+
+  if (!servingRuntime) {
+    throw new Error('No serving runtime found');
+  }
+
+  if (inferenceService.metadata.namespace && inferenceService.metadata.name) {
+    await deleteInferenceService(
+      inferenceService.metadata.name,
+      inferenceService.metadata.namespace,
+    );
+  }
+
+  if (servingRuntime.metadata?.namespace && servingRuntime.metadata.name) {
+    await deleteServingRuntime(servingRuntime.metadata.name, servingRuntime.metadata.namespace);
+  }
 };

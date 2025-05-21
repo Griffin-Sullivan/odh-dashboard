@@ -1,8 +1,8 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { NamespaceApplicationCase } from '@odh-dashboard/internal/pages/projects/types';
 import type {
   ModelServingPlatformExtension,
   ModelServingDeploymentsTableExtension,
+  ModelServingDeleteModal,
 } from '@odh-dashboard/model-serving/extension-points';
 import { KServeDeployment } from './src/deployments';
 
@@ -11,6 +11,7 @@ export const KSERVE_ID = 'kserve';
 const extensions: (
   | ModelServingPlatformExtension<KServeDeployment>
   | ModelServingDeploymentsTableExtension<KServeDeployment>
+  | ModelServingDeleteModal<KServeDeployment>
 )[] = [
   {
     type: 'model-serving.platform',
@@ -22,11 +23,7 @@ const extensions: (
         enabledLabelValue: 'false',
       },
       deployments: {
-<<<<<<< HEAD
         watch: () => import('./src/deployments').then((m) => m.useWatchDeployments),
-=======
-        list: () => import('./src/deployments').then((m) => m.listDeployments),
->>>>>>> 1ebb9c517 (Update 'Deployment' type usage)
       },
       enableCardText: {
         title: 'Single-model serving platform',
@@ -47,6 +44,15 @@ const extensions: (
     properties: {
       platform: KSERVE_ID,
       columns: () => import('./src/deploymentsTable').then((m) => m.columns),
+    },
+  },
+  {
+    type: 'model-serving.platform/delete-modal',
+    properties: {
+      platform: KSERVE_ID,
+      onDelete: () => import('./src/deployments').then((m) => m.deleteDeployment),
+      title: 'Delete deployed model?',
+      submitButtonLabel: 'Delete deployed model',
     },
   },
   // {
