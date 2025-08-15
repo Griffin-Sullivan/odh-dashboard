@@ -1,7 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Wizard, WizardStep } from '@patternfly/react-core';
+import { Spinner, Form, FormSection, Wizard, WizardStep } from '@patternfly/react-core';
 import ApplicationsPage from '@odh-dashboard/internal/pages/ApplicationsPage';
+import { ProjectKind } from '@odh-dashboard/internal/k8sTypes';
 import { getDeploymentWizardExitRoute } from './utils';
 
 import {
@@ -9,12 +10,14 @@ import {
   type UseModelDeploymentWizardProps,
 } from './useDeploymentWizard';
 import { ModelSourceStepContent } from './steps/ModelSourceStep';
+import { ModelDeploymentStepContent } from './steps/ModelDeploymentStep';
 
 type ModelDeploymentWizardProps = {
   title: string;
   description?: string;
   primaryButtonText: string;
   existingData?: UseModelDeploymentWizardProps;
+  project?: ProjectKind;
 };
 
 const ModelDeploymentWizard: React.FC<ModelDeploymentWizardProps> = ({
@@ -22,14 +25,18 @@ const ModelDeploymentWizard: React.FC<ModelDeploymentWizardProps> = ({
   description,
   primaryButtonText,
   existingData,
+  project,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
   const exitWizard = React.useCallback(() => {
     navigate(getDeploymentWizardExitRoute(location.pathname));
   }, [navigate, location.pathname]);
 
   const modelDeploymentWizardData = useModelDeploymentWizard(existingData);
+
+  const isLoading = false;
 
   return (
     <ApplicationsPage title={title} description={description} loaded empty={false}>
@@ -38,7 +45,16 @@ const ModelDeploymentWizard: React.FC<ModelDeploymentWizardProps> = ({
           <ModelSourceStepContent wizardData={modelDeploymentWizardData} />
         </WizardStep>
         <WizardStep name="Model deployment" id="model-deployment-step">
-          Step 2 content
+          {isLoading ? (
+            <Spinner data-testid="spinner" />
+          ) : (
+            project && (
+              <ModelDeploymentStepContent
+                projectName={project.metadata.name}
+                wizardData={modelDeploymentWizardData}
+              />
+            )
+          )}
         </WizardStep>
         <WizardStep name="Advanced options" id="advanced-options-step">
           Step 3 content
