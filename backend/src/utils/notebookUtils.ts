@@ -218,7 +218,6 @@ export const assembleNotebook = async (
         'opendatahub.io/dashboard': 'true',
       },
       annotations: {
-        'notebooks.opendatahub.io/oauth-logout-url': `${url}/notebook-controller/${translatedUsername}/home`,
         'notebooks.opendatahub.io/last-size-selection': lastSizeSelection,
         'notebooks.opendatahub.io/last-image-selection': imageSelection,
         'opendatahub.io/username': username,
@@ -249,8 +248,7 @@ export const assembleNotebook = async (
                   --ServerApp.token=''
                   --ServerApp.password=''
                   --ServerApp.base_url=/notebook/${namespace}/${name}
-                  --ServerApp.quit_button=False
-                  --ServerApp.tornado_settings={"user":"${translatedUsername}","hub_host":"${url}","hub_prefix":"/notebook-controller/${translatedUsername}"}`,
+                  --ServerApp.quit_button=False`,
                 },
                 {
                   name: 'JUPYTER_IMAGE',
