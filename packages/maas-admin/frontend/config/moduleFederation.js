@@ -1,0 +1,39 @@
+const { ModuleFederationPlugin } = require('@module-federation/enhanced/webpack');
+
+const deps = require('../package.json').dependencies;
+
+const moduleFederationConfig = {
+  name: 'maasAdmin',
+  filename: 'remoteEntry.js',
+
+  shared: {
+    react: { singleton: true, eager: true, requiredVersion: deps.react },
+    'react-dom': { singleton: true, eager: true, requiredVersion: deps['react-dom'] },
+    'react-router': { singleton: true, eager: true, requiredVersion: deps['react-router'] },
+    'react-router-dom': { singleton: true, eager: true, requiredVersion: deps['react-router-dom'] },
+    '@patternfly/react-core': {
+      singleton: true,
+      requiredVersion: deps['@patternfly/react-core'],
+    },
+    '@openshift/dynamic-plugin-sdk': {
+      singleton: true,
+      requiredVersion: deps['@openshift/dynamic-plugin-sdk'],
+    },
+    '@odh-dashboard/plugin-core': {
+      singleton: true,
+      requiredVersion: deps['@odh-dashboard/plugin-core'],
+    },
+  },
+  exposes: {
+    './extensions': './src/odh/extensions',
+    //'./extension-points': './src/odh/extension-points',
+  },
+  // For module federation to work when optimization.runtimeChunk="single":
+  // See https://github.com/webpack/webpack/issues/18810
+  runtime: false,
+  dts: false,
+};
+
+module.exports = {
+  moduleFederationPlugins: [new ModuleFederationPlugin(moduleFederationConfig)],
+};
