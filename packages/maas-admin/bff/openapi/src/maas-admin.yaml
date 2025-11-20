@@ -1,0 +1,335 @@
+openapi: '3.0.3'
+info:
+  title: 'MaaS Admin REST API'
+  version: '1.0.0'
+  description: 'REST API for MaaS Admin Backend for Frontend (BFF)'
+  license:
+    name: 'Apache 2.0'
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+servers:
+  - url: 'http://localhost:8080'
+    description: 'Local development server'
+
+# Global security requirement - all endpoints require Bearer token by default
+security:
+  - Bearer: []
+
+paths:
+  # =============================================================================
+  # UTILITY ENDPOINTS
+  # =============================================================================
+
+  /healthcheck:
+    summary: BFF service health check
+    description: >-
+      Health check endpoint to verify BFF service availability. This is a local service check
+      and does not validate external MaaS connectivity.
+    get:
+      tags:
+        - HealthCheck
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthCheckResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      operationId: healthcheck
+      summary: BFF Health Check
+      description: Returns BFF service status and version information.
+      security: []
+
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using OAuth2 JWT tokens
+  parameters:
+    NamespaceParam:
+      name: namespace
+      in: query
+      description: Kubernetes namespace to operate in.
+      required: true
+      schema:
+        type: string
+        example: 'demo'
+  schemas:
+    HealthCheckModel:
+      type: object
+      required:
+        - status
+        - system_info
+      properties:
+        status:
+          type: string
+          example: 'available'
+          description: BFF service availability status
+        system_info:
+          $ref: '#/components/schemas/SystemInfo'
+        userId:
+          type: string
+          example: 'user@example.com'
+          description: User identifier (optional)
+
+    SystemInfo:
+      type: object
+      required:
+        - version
+      properties:
+        version:
+          type: string
+          example: '1.0.0'
+          description: BFF service version
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: '400'
+          description: HTTP status code
+        message:
+          type: string
+          example: 'Bad request'
+          description: Human-readable error message
+
+    ErrorEnvelope:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+
+    # Models Schema
+    Model:
+      type: object
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+      properties:
+        id:
+          type: string
+          example: 'ollama/llama3.2:3b'
+          description: Unique model identifier
+        object:
+          type: string
+          example: 'model'
+          description: Object type (always "model")
+        created:
+          type: integer
+          format: int64
+          example: 1755616759
+          description: Unix timestamp when model was created
+        owned_by:
+          type: string
+          example: 'llama_stack'
+          description: Model owner/provider
+
+    # AI Assets Model Schema
+    AAModel:
+      type: object
+      required:
+        - model_name
+        - model_id
+        - serving_runtime
+        - api_protocol
+        - version
+        - endpoints
+        - status
+      properties:
+        model_name:
+          type: string
+          example: 'llama-32-3b-instruct'
+          description: Name of the AI model
+        model_id:
+          type: string
+          example: 'llama-32-3b-instruct'
+          description: Unique identifier for the AI model
+        serving_runtime:
+          type: string
+          example: 'OpenVINO Model Server'
+          description: Runtime used to serve the model
+        api_protocol:
+          type: string
+          example: 'v2'
+          description: API protocol version used by the model
+        version:
+          type: string
+          example: 'v2025.1'
+          description: Version of the model
+        description:
+          type: string
+          nullable: true
+          example: 'A high-performance computer vision model for object detection and classification'
+          description: Human-readable description of the model
+        usecase:
+          type: string
+          nullable: true
+          example: 'Computer Vision'
+          description: Primary use case for the model
+        endpoints:
+          type: array
+          items:
+            type: string
+          example: ['internal: http://llama-32-3b-instruct.genai-lls.svc.cluster.local:8080']
+          description: List of available endpoints for the model
+        status:
+          type: string
+          enum: ['Running', 'Stop']
+          example: 'Running'
+          description: Current status of the model (Running or Stop)
+        sa_token:
+          $ref: '#/components/schemas/SAToken'
+
+    # Service Account Token Schema
+    SAToken:
+      type: object
+      required:
+        - name
+        - token_name
+        - token
+      properties:
+        name:
+          type: string
+          example: 'default'
+          description: Name of the service account
+        token_name:
+          type: string
+          example: 'llama-sa'
+          description: Display name of the service account token (from openshift.io/display-name annotation)
+        token:
+          type: string
+          example: 'aaaaaaaaaaaaaaaaaaaa-mock-token-signature'
+          description: The actual service account token value (JWT)
+
+    ModelsData:
+      type: array
+      items:
+        $ref: '#/components/schemas/Model'
+      description: Array of available models
+
+    AAModelsData:
+      type: array
+      items:
+        $ref: '#/components/schemas/AAModel'
+      description: Array of available AI Assets models
+
+    # User Schema
+    UserModel:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+          example: 'user@example.com'
+          description: Current authenticated user identifier from Kubernetes cluster
+
+  responses:
+    HealthCheckResponse:
+      description: BFF service health status
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HealthCheckModel'
+
+    ModelsResponse:
+      description: List of available AI models
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/ModelsData'
+
+    BadRequest:
+      description: Bad Request - Invalid parameters, missing required fields, or malformed MCP Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            malformed_mcp_token:
+              summary: Malformed MCP Bearer Token
+              value:
+                error:
+                  code: '400'
+                  message: "malformed MCP token: expected X-MCP-Bearer header to start with 'Bearer '"
+            missing_parameter:
+              summary: Missing Required Parameter
+              value:
+                error:
+                  code: '400'
+                  message: 'missing required query parameter: namespace'
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+
+    NotFound:
+      description: Not Found - Requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+
+    InternalServerError:
+      description: Internal Server Error - Server encountered an unexpected condition
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+
+    UserResponse:
+      description: Current user information
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserModel'
+          example:
+            userId: 'user@example.com'
+
+    BFFConfigResponse:
+      description: BFF application-level configuration
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/BFFConfigModel'
+          example:
+            data:
+              isCustomLSD: false
+
+tags:
+  # =============================================================================
+  # UTILITY OPERATIONS
+  # =============================================================================
+  - name: HealthCheck
+    description: BFF service health check operations
+  - name: Kubernetes
+    description: Kubernetes cluster operations and namespace management
+  - name: Identity
+    description: User identity and authentication operations
+
+  # =============================================================================
+  # MODEL AS A SERVICE (MAAS) OPERATIONS
+  # =============================================================================
+  - name: MaaS
+    description: |
+      Model as a Service operations
