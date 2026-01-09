@@ -112,6 +112,13 @@ const CreateTierForm: React.FC<CreateTierFormProps> = ({
   // Check if k8sName is already taken by another tier
   const isK8sNameTaken = existingTierNames.has(data.k8sName.value);
 
+  // Check if level is already taken by another tier
+  const conflictingTierName = existingTierLevels.get(level);
+  const isLevelTaken = conflictingTierName !== undefined;
+
+  // Check if k8sName is already taken by another tier
+  const isK8sNameTaken = existingTierNames.has(data.k8sName.value);
+
   const { isValid: isFormValid, getAllValidationIssues } = useCreateTierFormValidation({
     name: data.name,
     level,
